@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk
-
 from tkinter.messagebox import showerror, showwarning, showinfo
 import pythoncom
 from win32com.client import Dispatch, gencache
@@ -23,7 +22,7 @@ else:
   showerror(title="Ошибка", message="Документ не активен")
 
 
-def spiral():
+def spiral(spiral_height, spiral_step):
   #создадим эскиз
   iPart7 = iKompasDocument3D.TopPart
   #iModelContainer = KAPI7.IModelContainer(iPart7)
@@ -35,8 +34,8 @@ def spiral():
   iSpiral.SetBasePoint(0.0, 0.0) #Опорная точка для построения спирали
   iSpiral.BuildingType = 1 #1 - Построение по шагу и высоте
   iSpiral.BuildingDirection = False #Выбор направления
-  iSpiral.Height = 30.0 #Высота спирали
-  iSpiral.Step = 5.0 #Шаг навивки
+  iSpiral.Height = spiral_height #Высота спирали
+  iSpiral.Step = spiral_step #Шаг навивки
   iSpiral.TurnDirection = True #Направление навивки
   #iSpiral.BasePlane = const_3d.o3d_planeXOZ #Установка базовой плоскости спирали
   iSpiral.Update()
@@ -48,6 +47,9 @@ if __name__ == '__main__':
   root.title('Библиотека 3D резьб')
   root.iconbitmap(default = "favicon.ico")
 
+  label_end_conditions = ttk.Label(text = "Граничные условия")
+  label_end_conditions.pack()
+
   end_conditions = ["Задать длину", "На всю длину"]
   cbox_end_conditions = ttk.Combobox(values = end_conditions)
   cbox_end_conditions.current(0)
@@ -55,32 +57,36 @@ if __name__ == '__main__':
 
   entry_end_conditions = ttk.Entry(root, width = 23)
   entry_end_conditions.pack(anchor = NW, padx = 6, pady = 6)
-  entry_end_conditions.insert(0, "10.0 мм")
+  entry_end_conditions.insert(0, "30.0")
 
-  
-  def click_button():
-    label["text"] = entry_end_conditions.get()   
+  label_thread_pitch = ttk.Label(text = "Шаг резьбы")
+  label_thread_pitch.pack()
 
-  label = ttk.Label()
-  label.pack(anchor=NW, padx=6, pady=6)
+  entry_thread_pitch = ttk.Entry(root, width = 23)
+  entry_thread_pitch.pack(anchor = NW, padx = 6, pady = 6)
+  entry_thread_pitch.insert(0, "5.0")
 
-  entry_override_pitch = ttk.Entry(root, width=23)
-  entry.pack(anchor=NW, padx=6, pady=6)
-  entry.insert(0, "1,5")
+  label_thread_pitch = ttk.Label(text = "Направление резьбы")
+  label_thread_pitch.pack()
 
   position = {"padx": 6, "pady": 6, "anchor": NW}
+  thread_directions = ["Правая резьба", "Левая резьба"]
+  default_thread_directions = StringVar(value = thread_directions[0])
 
-  right_thread = "Правая резьба)"
-  left_thread = "Левая резьба"
+  radiobtn_thread_right = ttk.Radiobutton(text = thread_directions[0], value = thread_directions[0], variable = default_thread_directions)
+  radiobtn_thread_right.pack(**position)
 
-  thread_direction = StringVar(value=right_thread)
+  radiobtn_thread_left = ttk.Radiobutton(text = thread_directions[1], value = thread_directions[1], variable = default_thread_directions)
+  radiobtn_thread_left.pack(**position)
 
-  header = ttk.Label(textvariable=thread_direction)
-  header.pack(**position)
 
-  right_thread_btn = ttk.Radiobutton(text=right_thread, value=right_thread, variable=thread_direction)
-  right_thread_btn.pack(**position)
+  def click_btn_create_spiral():
+    spiral_height = entry_end_conditions.get()
+    spiral_step = entry_thread_pitch.get()
+    spiral(spiral_height, spiral_step)
 
-  left_thread_btn = ttk.Radiobutton(text=left_thread, value=left_thread, variable=thread_direction)
-  left_thread_btn.pack(**position)
+
+  btn_create_spiral = ttk.Button(text = "Построить", command = click_btn_create_spiral)
+  btn_create_spiral.pack()
+
   root.mainloop()
