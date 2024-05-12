@@ -64,4 +64,24 @@ if __name__ == '__main__':
   btn.pack(anchor=NW, padx=6, pady=6)
   label = ttk.Label()
   label.pack(anchor=NW, padx=6, pady=6)
+
+  entry_override_pitch = ttk.Entry(root, width=23)
+  entry.pack(anchor=NW, padx=6, pady=6)
+  entry.insert(0, "1,5")
+
+  position = {"padx": 6, "pady": 6, "anchor": NW}
+
+  right_thread = "Правая резьба)"
+  left_thread = "Левая резьба"
+
+  thread_direction = StringVar(value=right_thread)
+
+  header = ttk.Label(textvariable=thread_direction)
+  header.pack(**position)
+
+  right_thread_btn = ttk.Radiobutton(text=right_thread, value=right_thread, variable=thread_direction)
+  right_thread_btn.pack(**position)
+
+  left_thread_btn = ttk.Radiobutton(text=left_thread, value=left_thread, variable=thread_direction)
+  left_thread_btn.pack(**position)
   root.mainloop()
