@@ -1,0 +1,326 @@
+# -*- coding: utf-8 -*-
+#|44
+
+import pythoncom
+from win32com.client import Dispatch, gencache
+
+#  Подключим константы API Компас
+const = gencache.EnsureModule("{75C9F5D0-B5B8-4526-8681-9903C567D2ED}", 0, 1, 0).constants
+const_3d = gencache.EnsureModule("{2CAF168C-7961-4B90-9DA2-701419BEEFE3}", 0, 1, 0).constants
+
+#  Подключим описание интерфейсов API5
+KAPI = gencache.EnsureModule("{0422828C-F174-495E-AC5D-D31014DBBE87}", 0, 1, 0)
+iKompasObject = KAPI.KompasObject(Dispatch("Kompas.Application.5")._oleobj_.QueryInterface(KAPI.KompasObject.CLSID, pythoncom.IID_IDispatch))
+
+#  Подключим описание интерфейсов API7
+KAPI7 = gencache.EnsureModule("{69AC2981-37C0-4379-84FD-5DD2F3C0A520}", 0, 1, 0)
+iApplication = KAPI7.IApplication(Dispatch("Kompas.Application.7")._oleobj_.QueryInterface(KAPI7.IApplication.CLSID, pythoncom.IID_IDispatch))
+
+#  Получим активный документ
+iKompasDocument = iApplication.ActiveDocument
+iKompasDocument3D = KAPI7.IKompasDocument3D(iKompasDocument)
+iDocument3D = iKompasObject.ActiveDocument3D()
+
+def test_cylinders(example): #Генерирует примеры, на которых можно было бы испытать программу
+    iPart = iDocument3D.GetPart(const_3d.pTop_Part)
+    iSketch = iPart.NewEntity(const_3d.o3d_sketch)
+    iSketchDefinition = iSketch.GetDefinition()
+
+    if(example == 0):
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeXOZ)
+        radius = 30
+        depth = 20
+
+    elif(example == 1):
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeXOY)
+        radius = 15
+        depth = 80
+
+    else:
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeYOZ)
+        radius = 7
+        depth = 50
+
+    iSketchDefinition.SetPlane(iPlane)
+    iSketch.Create()
+
+    #создадим в эскизе окружность
+    iDocument2D = iSketchDefinition.BeginEdit()
+    obj = iDocument2D.ksCircle(0, 0, radius, 1)
+    iSketchDefinition.EndEdit()
+
+    #выполним операцию выдавливания
+    iExtrusion = iPart.NewEntity(const_3d.o3d_bossExtrusion)
+    iBossExtrusionDefinition = iExtrusion.GetDefinition()
+    iBossExtrusionDefinition.SetSketch(iSketch)
+    iExtrusionParam = iBossExtrusionDefinition.ExtrusionParam()
+    iExtrusionParam.direction = 0
+    iExtrusionParam.depthNormal = depth
+    iExtrusionParam.draftOutwardNormal = False
+    iExtrusionParam.draftValueNormal = 0
+    iExtrusionParam.typeNormal = 0
+    iExtrusion.Create()
+
+
+class circle_info: #Информация о грани, на которой будет строиться спираль
+    def __init__(self, sel_param_5, iPlane_5, iPlaneNear_5):
+        self.sel_param_5 = sel_param_5 #Представление выделенного объекта в API5
+        self.sel_param_7 = iKompasObject.TransferInterface(sel_param_5,2,0) #Представление выделенного объекта в API7
+        self.iPlane_5 = iPlane_5 #Грань, соответствующая выделенному ребру
+        self.iPlaneNear_5 = iPlaneNear_5 #Грань, соответствующая боковому ребру цилиндра
+
+class spiral_settings: #Информация о настройках построения спирали
+    def __init__(self, is_object_height, direction, spiral_height, spiral_step):
+        self.is_object_height = is_object_height #Строить спираль по длине объекта?
+        self.direction = direction #направление навивки (True - прямое)
+        self.spiral_height = spiral_height #Высота спирали (не имеет смысла при построении по длине объекта)
+        self.spiral_step = spiral_step #длина шага спирали
+
+class profile_settings:
+    def __init__(self, shape, sizes):
+        self.shape = shape #Форма профиля (0 - круг, 1 - треугольник)
+        self.sizes = sizes #Линейные размеры элементов профиля
+
+        #Реализован пока что только круг :(
+        #Для круга всего один размер - радиус
+        #Для равтостороннего треугольника было бы два: ширина основания и высота
+
+def get_circle_selected(): #Получить 3Д-круг из выделения в редакторе
+    iSelectionMng = iDocument3D.GetSelectionMng()
+
+    if(iSelectionMng.GetCount() == 1): #Если выделен только один объект
+        return circle_check(iSelectionMng.GetObjectByIndex(0))
+
+    print("Выдели одно из рёбер цилиндра!")
+    return None
+
+def circle_check(circle_candidate): #Подходит для для построения спирали выделенный 3Д-круг?
+    if circle_candidate.type == 7:
+        param_5 = circle_candidate.GetDefinition()
+        param_7 = iKompasObject.TransferInterface(param_5,2,0)
+        if param_5.IsCircle(): #Если ребро имеет форму круга
+            #print("Это круг!")
+            if not(param_7.IsSketchEdge): #Если это НЕ ребро эскиза
+                #print("Это реальный круг, а не эскиз!")
+                """
+                Волшебный код...
+                В общем чтобы получить грань (а вместе с ней и нужное направление
+                спирали) необходимо применять метод с параметром True или False
+                В результате экспериментов было установлено, что правильно грань
+                определяется, если при поиске соседних граней у нас возвращается
+                коллекция из одного элемента (что логично для цилиндра)
+
+                Вот по этой причине и возникает нехитрый перебор False, а потом True
+                """
+
+                is_correct_object = False
+                directions = [True, False]
+                for i in directions:
+                    iPlane_5 = param_5.GetAdjacentFace(directions[i])
+                    if iPlane_5.ConnectedFaceCollection().GetCount() == 1:
+                        iPlaneNear_5 = iPlane_5.ConnectedFaceCollection().First()
+                        if(iPlaneNear_5.IsCylinder()):
+                            is_correct_object = True
+                            break
+                if not(is_correct_object):
+                    print("Я уже не знаю, что пошло не так...")
+            else:
+                print("Тебе нужно выделить ребро ОБЪЕКТА, а не экскиза, формы 'Окружность'!")
+        else:
+            print("Тебе нужно выделить ребро формы 'ОКРУЖНОСТЬ'!")
+    else:
+        print("Тебе нужно выделить РЕБРО формы 'Окружность'!")
+        return None
+
+    return circle_info(param_5, iPlane_5, iPlaneNear_5)
+
+def spiral_on_circle(c_info, settings): #Построение спирали на 3Д-круге
+    #Получение радиуса из выделенной окружности
+    iCurve = c_info.sel_param_5.GetCurve3D()
+    iCircle = iCurve.GetCurveParam()
+    my_radius = iCircle.radius
+
+    #Построение спирали
+    iPart7 = iKompasDocument3D.TopPart
+    iAuxiliaryGeomContainer = KAPI7.IAuxiliaryGeomContainer(iPart7)
+    iSpirals = iAuxiliaryGeomContainer.Spirals3D
+    iSpiral_7 = iSpirals.Add(const_3d.o3d_cylindricSpiral)
+
+    iSpiral_5 = iKompasObject.TransferInterface(iSpiral_7,1,0)
+    iSpiral_5.SetPlane(c_info.iPlane_5)
+    iSpiral_5.SetLocation(0,0)
+    iSpiral_5.diamType = 0
+    iSpiral_5.diam = my_radius*2
+    iSpiral_5.buildMode = 1 #1 - Построение по шагу и высоте
+    iSpiral_5.buildDir = False #Выбор направления
+    iSpiral_5.heightType = 0
+
+    if settings.is_object_height:
+        rez = c_info.iPlaneNear_5.GetCylinderParam()
+        iSpiral_5.height = rez[1]  #Высота спирали
+    else:
+        iSpiral_5.height = settings.spiral_height #Высота спирали
+
+    iSpiral_5.step = settings.spiral_step #Шаг навивки
+    iSpiral_5.turnDir = settings.direction #Направление навивки
+
+    iSpiral_7.Update()
+    return iSpiral_7
+
+def make_thread(c_info, iSpiral_7, p_settings): #Создание профиля и резьбы
+    iSpiral_5 = iKompasObject.TransferInterface(iSpiral_7,1,0)
+
+    iCurve = c_info.sel_param_5.GetCurve3D()
+    iPlacement = iCurve.GetCurveParam().GetPlacement()
+    iCurve3D = iSpiral_5.GetCurve3D()
+
+    cx=cy=cz=0
+    #Точка начала спирали, в которой можно построить профиль
+    iPoint1 = iCurve3D.GetPoint(iCurve3D.GetParamMin(), cx, cy, cz)
+    #Точка окончания спирали
+    iPoint2 = iCurve3D.GetPoint(iCurve3D.GetParamMax(), cx, cy, cz)
+    #Точка центра круга, на котором строится спираль
+    iPoint3 = iPlacement.GetOrigin(cx, cy, cz)
+
+    #print("Spiral begin", iPoint1)
+    #print("Spiral end", iPoint2)
+    #print("Сircle center", iPoint3)
+
+    iKompasDocument = iApplication.ActiveDocument
+    iKompasDocument3D = KAPI7.IKompasDocument3D(iKompasDocument)
+    iDocument3D = iKompasObject.ActiveDocument3D()
+
+    iPart7 = iKompasDocument3D.TopPart
+    iPart = iDocument3D.GetPart(const_3d.pTop_Part)
+
+    iModelContainer = iPart7._oleobj_.QueryInterface(KAPI7.IModelContainer.CLSID, pythoncom.IID_IDispatch)
+    iModelContainer = KAPI7.IModelContainer(iModelContainer)
+
+    #Создание первой точки
+    iPoints3D = iModelContainer.Points3D
+    iPoint3D1 = iPoints3D.Add()
+    iPoint3D1.ParameterType = const_3d.ksPParamCoord
+    iPoint3D1.Symbol = const.ksDotPoint
+    iPoint3D1.X = iPoint1[1]
+    iPoint3D1.Y = iPoint1[2]
+    iPoint3D1.Z = iPoint1[3]
+    iPoint3D1_7 = iKompasObject.TransferInterface(iPoint3D1, 2, 0)
+    iPoint3D1.SetAssociationObject(iPoint3D1_7)
+    iPoint3D1.Name = "heeelp_point1" #На случай, если нам нужно будет удалять объект по названию
+    iPoint3D1.Update()
+
+    #Создание второй точки
+    iPoint3D2 = iPoints3D.Add()
+    iPoint3D2.ParameterType = const_3d.ksPParamCoord
+    iPoint3D2.Symbol = const.ksDotPoint
+    iPoint3D2.X = iPoint2[1]
+    iPoint3D2.Y = iPoint2[2]
+    iPoint3D2.Z = iPoint2[3]
+    iPoint3D2_7 = iKompasObject.TransferInterface(iPoint3D2, 2, 0)
+    iPoint3D2.SetAssociationObject(iPoint3D2_7)
+    iPoint3D2.Name = "heeelp_point2" #На случай, если нам нужно будет удалять объект по названию
+    iPoint3D2.Update()
+
+    #Создание третьей точки
+    iPoint3D3 = iPoints3D.Add()
+    iPoint3D3.ParameterType = const_3d.ksPParamCoord
+    iPoint3D3.Symbol = const.ksDotPoint
+    iPoint3D3.X = iPoint3[1]
+    iPoint3D3.Y = iPoint3[2]
+    iPoint3D3.Z = iPoint3[3]
+    iPoint3D3_7 = iKompasObject.TransferInterface(iPoint3D3, 2, 0)
+    iPoint3D3.SetAssociationObject(iPoint3D3_7)
+    iPoint3D3.Name = "heeelp_point3" #На случай, если нам нужно будет удалять объект по названию
+    iPoint3D3.Update()
+
+    #Используя эти 3 точки можем построить плоскост, в которой будем рисовать профиль
+    plane_profile = iPart.NewEntity(const_3d.o3d_plane3Points)
+    iDefinition = plane_profile.GetDefinition()
+    iCollection = iPart.EntityCollection(const_3d.o3d_point3D)
+    iCollection.SelectByPoint(iPoint1[1], iPoint1[2], iPoint1[3])
+    iPoint = iCollection.First()
+    iDefinition.SetPoint(1, iPoint)
+    iCollection = iPart.EntityCollection(const_3d.o3d_point3D)
+    iCollection.SelectByPoint(iPoint2[1], iPoint2[2], iPoint2[3])
+    iPoint = iCollection.First()
+    iDefinition.SetPoint(2, iPoint)
+    iCollection = iPart.EntityCollection(const_3d.o3d_point3D)
+    iCollection.SelectByPoint(iPoint3[1], iPoint3[2], iPoint3[3])
+    iPoint = iCollection.First()
+    iDefinition.SetPoint(3, iPoint)
+    plane_profile.name = "heeelp_plane"
+    iColorParam = plane_profile.ColorParam()
+    iColorParam.color = 16776960
+    plane_profile.Create()
+
+    #Создаём на плоскости эских и пытаемся на нём
+    iSketch_profile = iPart.NewEntity(const_3d.o3d_sketch)
+    iDefinition = iSketch_profile.GetDefinition()
+    iDefinition.SetPlane(plane_profile)
+    iSketch_profile.Create()
+
+    iDocument2D = iDefinition.BeginEdit()
+    iKompasDocument2D = KAPI7.IKompasDocument2D(iKompasDocument)
+    iDocument2D = iKompasObject.ActiveDocument2D()
+
+    iSketch_7 = iKompasObject.TransferInterface(iDefinition, 2, 0)
+    iSketch_7.LeftHandedCS = True
+
+    profile = None
+
+    try:
+        #Получение координат точки iPoint1 в координатах эскиза, чтобы нарисовать в ней профиль
+        bx=by=0
+        rez = iSketch_7.GetPointProjectionToXY(iPoint1[1], iPoint1[2], iPoint1[3], bx, by)
+        #print(rez)
+        if p_settings.shape == 0:
+            profile = iDocument2D.ksCircle(rez[1], -rez[2], p_settings.sizes[0], 1)
+        else:
+            raise ValueError("Неверный номер профиля резьбы!")
+    except:
+        print("Ошибки в построении профиля")
+    finally: #Если в построении будет ошибка и не закрыть эскиз, то редактор зависнет
+        #Поэтому эскиз надо закрыть в любом случае
+        iDefinition.EndEdit()
+        iDefinition.angle = 180
+        iSketch_7.Update()
+
+
+    #Вырезание на объекте резьбы
+    extrusion_thread = iPart.NewEntity(const_3d.o3d_cutEvolution)
+    iDefinition = extrusion_thread.GetDefinition()
+    iDefinition.cut = True
+    iDefinition.cut = 1
+    iDefinition.SetSketch(iSketch_profile)
+    iArray = iDefinition.PathPartArray()
+    iArray.Add(iCurve3D)
+    iThinParam = iDefinition.ThinParam()
+    iThinParam.thin = False
+    extrusion_thread.name = "Резьба:1"
+    iColorParam = extrusion_thread.ColorParam()
+    iColorParam.ambient = 0.5
+    iColorParam.color = 9474192
+    iColorParam.diffuse = 0.6
+    iColorParam.emission = 0.5
+    iColorParam.shininess = 0.8
+    iColorParam.specularity = 0.8
+    iColorParam.transparency = 1
+    extrusion_thread.Create()
+
+
+#==============================================================================
+#                            Применение кода
+#==============================================================================
+#for i in range(3): #Генерация тестовых примеров
+#    test_cylinders(i)
+
+circle_selected = get_circle_selected()
+
+if circle_selected != None:
+    my_spiral_settings = spiral_settings(True, False, 30.0, 5.0)
+    my_spiral = spiral_on_circle(circle_selected, my_spiral_settings)
+    my_profile_settings=profile_settings(0, [2])
+    make_thread(circle_selected, my_spiral, my_profile_settings)
+
+
+
