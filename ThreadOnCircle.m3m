@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+#|44
+
+import pythoncom
+from win32com.client import Dispatch, gencache
+
+from circle_info import circle_check, circle_info
+from kompas_data import kompas_data
+from make_thread import profile_settings, make_thread
+from spiral_on_circle import spiral_on_circle, spiral_settings
+
+#  Подключим константы API Компас
+const = gencache.EnsureModule("{75C9F5D0-B5B8-4526-8681-9903C567D2ED}", 0, 1, 0).constants
+const_3d = gencache.EnsureModule("{2CAF168C-7961-4B90-9DA2-701419BEEFE3}", 0, 1, 0).constants
+
+#  Подключим описание интерфейсов API5
+KAPI = gencache.EnsureModule("{0422828C-F174-495E-AC5D-D31014DBBE87}", 0, 1, 0)
+iKompasObject = KAPI.KompasObject(Dispatch("Kompas.Application.5")._oleobj_.QueryInterface(KAPI.KompasObject.CLSID, pythoncom.IID_IDispatch))
+
+#  Подключим описание интерфейсов API7
+KAPI7 = gencache.EnsureModule("{69AC2981-37C0-4379-84FD-5DD2F3C0A520}", 0, 1, 0)
+iApplication = KAPI7.IApplication(Dispatch("Kompas.Application.7")._oleobj_.QueryInterface(KAPI7.IApplication.CLSID, pythoncom.IID_IDispatch))
+
+#  Получим активный документ
+iKompasDocument = iApplication.ActiveDocument
+iKompasDocument3D = KAPI7.IKompasDocument3D(iKompasDocument)
+iDocument3D = iKompasObject.ActiveDocument3D()
+
+
+
+def test_cylinders(example): #Генерирует примеры, на которых можно было бы испытать программу
+    iPart = iDocument3D.GetPart(const_3d.pTop_Part)
+    iSketch = iPart.NewEntity(const_3d.o3d_sketch)
+    iSketchDefinition = iSketch.GetDefinition()
+
+    if(example == 0):
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeXOZ)
+        radius = 30
+        depth = 20
+
+    elif(example == 1):
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeXOY)
+        radius = 15
+        depth = 80
+
+    else:
+        iPlane = iPart.GetDefaultEntity(const_3d.o3d_planeYOZ)
+        radius = 7
+        depth = 50
+
+    iSketchDefinition.SetPlane(iPlane)
+    iSketch.Create()
+
+    #создадим в эскизе окружность
+    iDocument2D = iSketchDefinition.BeginEdit()
+    obj = iDocument2D.ksCircle(0, 0, radius, 1)
+    iSketchDefinition.EndEdit()
+
+    #выполним операцию выдавливания
+    iExtrusion = iPart.NewEntity(const_3d.o3d_bossExtrusion)
+    iBossExtrusionDefinition = iExtrusion.GetDefinition()
+    iBossExtrusionDefinition.SetSketch(iSketch)
+    iExtrusionParam = iBossExtrusionDefinition.ExtrusionParam()
+    iExtrusionParam.direction = 0
+    iExtrusionParam.depthNormal = depth
+    iExtrusionParam.draftOutwardNormal = False
+    iExtrusionParam.draftValueNormal = 0
+    iExtrusionParam.typeNormal = 0
+    iExtrusion.Create()
+
+def get_circle_selected(kd): #Получить 3Д-круг из выделения в редакторе
+    iSelectionMng = iDocument3D.GetSelectionMng()
+
+    if(iSelectionMng.GetCount() == 1): #Если выделен только один объект
+        return circle_check(kd,iSelectionMng.GetObjectByIndex(0))
+
+    print("Выдели одно из рёбер цилиндра!")
+    return None
+
+#==============================================================================
+#                            Применение кода
+#==============================================================================
+#for i in range(3): #Генерация тестовых примеров
+#    test_cylinders(i)
+kd = kompas_data()
+
+circle_selected = get_circle_selected(kd)
+
+if circle_selected != None:
+    my_spiral_settings = spiral_settings(True, False, 30.0, 5.0)
+    my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings)
+    my_profile_settings=profile_settings(0, [2])
+    make_thread(kd, circle_selected, my_spiral, my_profile_settings)
+
+
+
