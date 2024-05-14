@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#|44
+
 class circle_info: #Информация о грани, на которой будет строиться спираль
     def __init__(self, sel_param_5, sel_param_7, iPlane_5, iPlaneNear_5):
         self.sel_param_5 = sel_param_5 #Представление выделенного объекта в API5
@@ -5,8 +8,24 @@ class circle_info: #Информация о грани, на которой бу
         self.iPlane_5 = iPlane_5 #Грань, соответствующая выделенному ребру
         self.iPlaneNear_5 = iPlaneNear_5 #Грань, соответствующая боковому ребру цилиндра
 
+        #Получение радиуса из выделенной окружности
+        self.radius = None
+        if self.sel_param_5.GetCurve3D() != None:
+            iCurve = self.sel_param_5.GetCurve3D()
+            iCircle = iCurve.GetCurveParam()
+            self.radius = iCircle.radius
+
+        #Получение высоты цилиндрической грани, если таковая имеется
+        self.cylinder_height = None
+        if iPlaneNear_5 != None:
+            self.cylinder_height = 0
+            if self.iPlaneNear_5.IsCylinder():
+                rez = self.iPlaneNear_5.GetCylinderParam()
+                self.cylinder_height = rez[1]
+
 def circle_check(kd, circle_candidate): #Подходит для для построения спирали выделенный 3Д-круг?
-    # kd - это KompasData - типовые объекты, которые следует передать
+     # kd - переменная с константами Kompas3D
+
     if circle_candidate.type == 7:
         param_5 = circle_candidate.GetDefinition()
         param_7 = kd.iKompasObject.TransferInterface(param_5,2,0)
@@ -39,10 +58,13 @@ def circle_check(kd, circle_candidate): #Подходит для для пост
                             break
                 if not(is_correct_object):
                     print("Я уже не знаю, что пошло не так...")
+                    return None
             else:
                 print("Тебе нужно выделить ребро ОБЪЕКТА, а не экскиза, формы 'Окружность'!")
+                return None
         else:
             print("Тебе нужно выделить ребро формы 'ОКРУЖНОСТЬ'!")
+            return None
     else:
         print("Тебе нужно выделить РЕБРО формы 'Окружность'!")
         return None

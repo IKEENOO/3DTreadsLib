@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#|44
+
 import pythoncom
 
 class profile_settings:
@@ -10,7 +13,7 @@ class profile_settings:
         #Для равтостороннего треугольника было бы два: ширина основания и высота
 
 def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профиля и резьбы
-    # kd - это KompasData - типовые объекты, которые следует передать
+    # kd - переменная с константами Kompas3D
     iSpiral_5 = kd.iKompasObject.TransferInterface(iSpiral_7,1,0)
 
     iCurve = c_info.sel_param_5.GetCurve3D()
@@ -27,7 +30,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
 
     #print("Spiral begin", iPoint1)
     #print("Spiral end", iPoint2)
-    #print("Сircle center", iPoint3)
+    #print("РЎircle center", iPoint3)
 
     iKompasDocument = kd.iApplication.ActiveDocument
     iKompasDocument3D = kd.KAPI7.IKompasDocument3D(iKompasDocument)
@@ -49,7 +52,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D1.Z = iPoint1[3]
     iPoint3D1_7 = kd.iKompasObject.TransferInterface(iPoint3D1, 2, 0)
     iPoint3D1.SetAssociationObject(iPoint3D1_7)
-    iPoint3D1.Name = "heeelp_point1" #На случай, если нам нужно будет удалять объект по названию
+    #iPoint3D1.Name = "heeelp_point1" #На случай, если нам нужно будет удалять объект по названию
     iPoint3D1.Update()
 
     #Создание второй точки
@@ -61,7 +64,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D2.Z = iPoint2[3]
     iPoint3D2_7 = kd.iKompasObject.TransferInterface(iPoint3D2, 2, 0)
     iPoint3D2.SetAssociationObject(iPoint3D2_7)
-    iPoint3D2.Name = "heeelp_point2" #На случай, если нам нужно будет удалять объект по названию
+    #iPoint3D2.Name = "heeelp_point2"
     iPoint3D2.Update()
 
     #Создание третьей точки
@@ -73,7 +76,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D3.Z = iPoint3[3]
     iPoint3D3_7 = kd.iKompasObject.TransferInterface(iPoint3D3, 2, 0)
     iPoint3D3.SetAssociationObject(iPoint3D3_7)
-    iPoint3D3.Name = "heeelp_point3" #На случай, если нам нужно будет удалять объект по названию
+    #iPoint3D3.Name = "heeelp_point3"
     iPoint3D3.Update()
 
     #Используя эти 3 точки можем построить плоскост, в которой будем рисовать профиль
@@ -91,7 +94,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iCollection.SelectByPoint(iPoint3[1], iPoint3[2], iPoint3[3])
     iPoint = iCollection.First()
     iDefinition.SetPoint(3, iPoint)
-    plane_profile.name = "heeelp_plane"
+    #plane_profile.name = "heeelp_plane"
     iColorParam = plane_profile.ColorParam()
     iColorParam.color = 16776960
     plane_profile.Create()
@@ -119,9 +122,9 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
         if p_settings.shape == 0:
             profile = iDocument2D.ksCircle(rez[1], -rez[2], p_settings.sizes[0], 1)
         else:
-            raise ValueError("Неверный номер профиля резьбы!")
+            raise ValueError("РќРµРІРµСЂРЅС‹Р№ РЅРѕРјРµСЂ РїСЂРѕС„РёР»СЏ СЂРµР·СЊР±С‹!")
     except:
-        print("Ошибки в построении профиля")
+        print("РћС€РёР±РєРё РІ РїРѕСЃС‚СЂРѕРµРЅРёРё РїСЂРѕС„РёР»СЏ")
     finally: #Если в построении будет ошибка и не закрыть эскиз, то редактор зависнет
         #Поэтому эскиз надо закрыть в любом случае
         iDefinition.EndEdit()
@@ -139,7 +142,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iArray.Add(iCurve3D)
     iThinParam = iDefinition.ThinParam()
     iThinParam.thin = False
-    extrusion_thread.name = "Резьба:1"
+    extrusion_thread.name = "Р РµР·СЊР±Р°:1"
     iColorParam = extrusion_thread.ColorParam()
     iColorParam.ambient = 0.5
     iColorParam.color = 9474192

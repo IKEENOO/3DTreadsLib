@@ -8,6 +8,7 @@ from circle_info import circle_check, circle_info
 from kompas_data import kompas_data
 from make_thread import profile_settings, make_thread
 from spiral_on_circle import spiral_on_circle, spiral_settings
+from make_bevel import bevel_settings, make_bevel
 
 #  Подключим константы API Компас
 const = gencache.EnsureModule("{75C9F5D0-B5B8-4526-8681-9903C567D2ED}", 0, 1, 0).constants
@@ -25,7 +26,6 @@ iApplication = KAPI7.IApplication(Dispatch("Kompas.Application.7")._oleobj_.Quer
 iKompasDocument = iApplication.ActiveDocument
 iKompasDocument3D = KAPI7.IKompasDocument3D(iKompasDocument)
 iDocument3D = iKompasObject.ActiveDocument3D()
-
 
 
 def test_cylinders(example): #Генерирует примеры, на которых можно было бы испытать программу
@@ -87,10 +87,18 @@ kd = kompas_data()
 circle_selected = get_circle_selected(kd)
 
 if circle_selected != None:
+    my_bevel_settings=bevel_settings(5, 1.732050807569)
+    make_bevel(kd, circle_selected, my_bevel_settings)
+
     my_spiral_settings = spiral_settings(True, False, 30.0, 5.0)
     my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings)
+
     my_profile_settings=profile_settings(0, [2])
     make_thread(kd, circle_selected, my_spiral, my_profile_settings)
+
+
+
+
 
 
 
