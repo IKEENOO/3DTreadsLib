@@ -5,12 +5,14 @@ import pythoncom
 
 class profile_settings:
     def __init__(self, shape, sizes):
-        self.shape = shape #Форма профиля (0 - круг, 1 - треугольник)
+        self.shape = shape
+        """
+        Форма профиля:
+            0 - круг. Размеры: [радиус]
+            1 - треугольник. Размеры: [основание, высота]
+            2 - треугольник. Размеры: [основание, верхняя сторона, нижняя сторона] (не реализовано)
+        """
         self.sizes = sizes #Линейные размеры элементов профиля
-
-        #Реализован пока что только круг :(
-        #Для круга всего один размер - радиус
-        #Для равтостороннего треугольника было бы два: ширина основания и высота
 
 def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профиля и резьбы
     # kd - переменная с константами Kompas3D
@@ -27,10 +29,6 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint2 = iCurve3D.GetPoint(iCurve3D.GetParamMax(), cx, cy, cz)
     #Точка центра круга, на котором строится спираль
     iPoint3 = iPlacement.GetOrigin(cx, cy, cz)
-
-    #print("Spiral begin", iPoint1)
-    #print("Spiral end", iPoint2)
-    #print("РЎircle center", iPoint3)
 
     iKompasDocument = kd.iApplication.ActiveDocument
     iKompasDocument3D = kd.KAPI7.IKompasDocument3D(iKompasDocument)
@@ -121,10 +119,15 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
         #print(rez)
         if p_settings.shape == 0:
             profile = iDocument2D.ksCircle(rez[1], -rez[2], p_settings.sizes[0], 1)
+        elif p_settings.shape == 1:
+            profile = iDocument2D.ksLineSeg(rez[1], -rez[2], rez[1], -rez[2] + p_settings.sizes[0]/2, 1)
+            profile = iDocument2D.ksLineSeg(rez[1], -rez[2], rez[1], -rez[2] - p_settings.sizes[0]/2, 1)
+            profile = iDocument2D.ksLineSeg(rez[1], -rez[2] + p_settings.sizes[0]/2, rez[1] - p_settings.sizes[1], -rez[2], 1)
+            profile = iDocument2D.ksLineSeg(rez[1], -rez[2] - p_settings.sizes[0]/2, rez[1] - p_settings.sizes[1], -rez[2], 1)
         else:
-            raise ValueError("РќРµРІРµСЂРЅС‹Р№ РЅРѕРјРµСЂ РїСЂРѕС„РёР»СЏ СЂРµР·СЊР±С‹!")
+            raise ValueError("Ошибка в типе профиля!")
     except:
-        print("РћС€РёР±РєРё РІ РїРѕСЃС‚СЂРѕРµРЅРёРё РїСЂРѕС„РёР»СЏ")
+        print("Ошибка при построении профиля!")
     finally: #Если в построении будет ошибка и не закрыть эскиз, то редактор зависнет
         #Поэтому эскиз надо закрыть в любом случае
         iDefinition.EndEdit()
@@ -142,7 +145,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iArray.Add(iCurve3D)
     iThinParam = iDefinition.ThinParam()
     iThinParam.thin = False
-    extrusion_thread.name = "Р РµР·СЊР±Р°:1"
+    #extrusion_thread.name = "heeelp_extrusion"
     iColorParam = extrusion_thread.ColorParam()
     iColorParam.ambient = 0.5
     iColorParam.color = 9474192

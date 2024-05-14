@@ -93,7 +93,8 @@ if circle_selected != None:
     my_spiral_settings = spiral_settings(True, False, 30.0, 5.0)
     my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings)
 
-    my_profile_settings=profile_settings(0, [2])
+    #my_profile_settings=profile_settings(0, [2]) #Круглый профиль радиуса 2
+    my_profile_settings=profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4
     make_thread(kd, circle_selected, my_spiral, my_profile_settings)
 
 
