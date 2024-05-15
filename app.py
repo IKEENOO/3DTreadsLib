@@ -3,6 +3,12 @@ from tkinter import ttk
 from tkinter.messagebox import showerror, showwarning, showinfo
 import pythoncom
 from win32com.client import Dispatch, gencache
+import math
+from circle_info import circle_check, circle_info
+from kompas_data import kompas_data
+from make_thread import profile_settings, make_thread
+from spiral_on_circle import spiral_on_circle, spiral_settings
+from make_bevel import bevel_settings, make_bevel
 
 
 #  Подключим константы API Компас
@@ -47,43 +53,90 @@ if __name__ == '__main__':
   root.title('Библиотека 3D резьб')
   root.iconbitmap(default = "favicon.ico")
 
+  position = {"padx": 6, "pady": 6, "anchor": NW}
+
   label_end_conditions = ttk.Label(text = "Граничные условия")
   label_end_conditions.pack()
 
   end_conditions = ["Задать длину", "На всю длину"]
   cbox_end_conditions = ttk.Combobox(values = end_conditions)
   cbox_end_conditions.current(0)
-  cbox_end_conditions.pack(anchor = NW, padx = 6, pady = 6)
+  cbox_end_conditions.pack(**position)
+
+  
+  def cbox_selected(event):
+    # получаем выделенный элемент
+    selection = cbox_end_conditions.get()
+    if selection == "Задать длину":
+      entry_end_conditions["state"] = "normal"
+    else:
+      entry_end_conditions["state"] = "disabled"  
+
+
+  cbox_end_conditions.bind("<<ComboboxSelected>>", cbox_selected)
 
   entry_end_conditions = ttk.Entry(root, width = 23)
-  entry_end_conditions.pack(anchor = NW, padx = 6, pady = 6)
-  entry_end_conditions.insert(0, "30.0")
+  entry_end_conditions.pack(**position)
+  entry_end_conditions.insert(0, "30.0")  
 
   label_thread_pitch = ttk.Label(text = "Шаг резьбы")
   label_thread_pitch.pack()
 
   entry_thread_pitch = ttk.Entry(root, width = 23)
-  entry_thread_pitch.pack(anchor = NW, padx = 6, pady = 6)
+  entry_thread_pitch.pack(**position)
   entry_thread_pitch.insert(0, "5.0")
 
   label_thread_pitch = ttk.Label(text = "Направление резьбы")
   label_thread_pitch.pack()
 
-  position = {"padx": 6, "pady": 6, "anchor": NW}
   thread_directions = ["Правая резьба", "Левая резьба"]
-  default_thread_directions = StringVar(value = thread_directions[0])
+  #thread_direction_right = True
+  #thread_direction_left = False
+  #default_thread_directions = StringVar(value = thread_directions[0])
 
-  radiobtn_thread_right = ttk.Radiobutton(text = thread_directions[0], value = thread_directions[0], variable = default_thread_directions)
+  rb_var = BooleanVar()
+  rb_var.set(1)
+
+  radiobtn_thread_right = ttk.Radiobutton(text = thread_directions[0], value = 1, variable = rb_var)
   radiobtn_thread_right.pack(**position)
 
-  radiobtn_thread_left = ttk.Radiobutton(text = thread_directions[1], value = thread_directions[1], variable = default_thread_directions)
+  radiobtn_thread_left = ttk.Radiobutton(text = thread_directions[1], value = 0, variable = rb_var)
   radiobtn_thread_left.pack(**position)
+
+
+  def get_circle_selected(kd): #Получить 3Д-круг из выделения в редакторе
+      iSelectionMng = iDocument3D.GetSelectionMng()
+      
+      try:
+        if(iSelectionMng.GetCount() == 1): #Если выделен только один объект
+          return circle_check(kd,iSelectionMng.GetObjectByIndex(0))
+      except:
+        #print("Выдели одно из рёбер цилиндра!")
+        showerror(title="Ошибка", message="Выдели ребро")
+      
+      return None
 
 
   def click_btn_create_spiral():
     spiral_height = entry_end_conditions.get()
     spiral_step = entry_thread_pitch.get()
-    spiral(spiral_height, spiral_step)
+    #spiral(spiral_height, spiral_step)
+
+    kd = kompas_data()
+
+    circle_selected = get_circle_selected(kd)
+
+    if circle_selected != None:
+        my_bevel_settings=bevel_settings(2, math.pi/4) # Bevel это значит фаска
+        make_bevel(kd, circle_selected, my_bevel_settings)
+
+        my_spiral_settings = spiral_settings(cbox_end_conditions.get() == "На всю длину", rb_var.get(), spiral_height, spiral_step)
+        my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings)
+
+        #my_profile_settings=profile_settings(0, [2]) #Круглый профиль радиуса 2
+        my_profile_settings=profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4
+        make_thread(kd, circle_selected, my_spiral, my_profile_settings)
+
 
 
   btn_create_spiral = ttk.Button(text = "Построить", command = click_btn_create_spiral)

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-#|44
-
 import pythoncom
 from win32com.client import Dispatch, gencache
 
