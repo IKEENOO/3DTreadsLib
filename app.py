@@ -1,3 +1,4 @@
+
 from tkinter import *
 from tkinter import ttk
 
@@ -43,45 +44,78 @@ def spiral():
 
 
 if __name__ == '__main__':
+  # Создание поля
   root = Tk()
   root.title('Библиотека 3D резьб')
   root.iconbitmap(default="favicon.ico")
+  root.geometry("350x300")
+  # Создание Combobox
   end_conditions = ["Задать длину", "На всю длину"]
+  combobox_frame = ttk.Frame(root, borderwidth=2, relief="solid")
+  combobox_frame.grid(row=0, column=0, padx=6, pady=6)
   combobox = ttk.Combobox(values=end_conditions)
   combobox.current(0)
-  combobox.pack(anchor=NW, padx=6, pady=6)
+  combobox.grid(sticky=NW, row=0, column=0, padx=6, pady=6)
+  # Создание Entry
   entry = ttk.Entry(root, width=23)
-  entry.pack(anchor=NW, padx=6, pady=6)
+  entry.grid(sticky=NW, row=0, column=0, padx=6, pady=6)
   entry.insert(0, "10.0 мм")
-  
+  # Создание кнопки и вывод результата
   clicks = 0
   
   def click_button():
-    label["text"] = entry.get()   
+    label["text"] = entry.get() 
 
   
   btn = ttk.Button(text="Click Me", command=click_button)
-  btn.pack(anchor=NW, padx=6, pady=6)
+  btn.grid(row= 2, column=0, padx=6, pady=6)
   label = ttk.Label()
-  label.pack(anchor=NW, padx=6, pady=6)
-
+  label.grid(sticky=NW, row= 3, column=0, padx=6, pady=6)
   entry_override_pitch = ttk.Entry(root, width=23)
-  entry.pack(anchor=NW, padx=6, pady=6)
+  entry.grid(sticky=NW, row= 4, column=0, padx=6, pady=6)
   entry.insert(0, "1,5")
+  # Создание RadioBtn
 
-  position = {"padx": 6, "pady": 6, "anchor": NW}
-
-  right_thread = "Правая резьба)"
+  right_thread = "Правая резьба"
   left_thread = "Левая резьба"
 
   thread_direction = StringVar(value=right_thread)
 
   header = ttk.Label(textvariable=thread_direction)
-  header.pack(**position)
+  header.grid(row=5, column=0, padx=6, pady=6)
 
   right_thread_btn = ttk.Radiobutton(text=right_thread, value=right_thread, variable=thread_direction)
-  right_thread_btn.pack(**position)
+  right_thread_btn.grid(sticky=NW, row=6, column=0, padx=6, pady=6)
 
   left_thread_btn = ttk.Radiobutton(text=left_thread, value=left_thread, variable=thread_direction)
-  left_thread_btn.pack(**position)
+  left_thread_btn.grid(sticky=NW, row=7, column=0, padx=6, pady=6)
+
+  #заглушка
+  # Создание Combobox
+  end_conditions = ["Задать длину", "На всю длину"]
+  combobox = ttk.Combobox(values=end_conditions)
+  combobox.current(0)
+  combobox.grid(sticky=NW, row=0, column=1, padx=6, pady=6)
+  # Создание Entry
+  entry = ttk.Entry(root, width=23)
+  entry.grid(sticky=NW, row=0, column=1, padx=6, pady=6)
+  entry.insert(0, "10.0 мм")
+  # Создание кнопки и вывод результата
+  clicks = 0
+  
+  def click_button():
+    label["text"] = entry.get() 
+
+  
+  btn = ttk.Button(text="Click Me", command=click_button)
+  btn.grid(row=2, column=1, padx=6, pady=6)
+  label = ttk.Label()
+  label.grid(sticky=NW, row=3, column=1, padx=6, pady=6)
+  entry_override_pitch = ttk.Entry(root, width=23)
+  entry.grid(sticky=NW, row=4, column=1, padx=6, pady=6)
+  entry.insert(0, "1,5")
+
+  # заглушка кнопкой
+  btn = ttk.Button(text="Click Me", command=click_button)
+  btn.grid(row=5, column=1, padx=6, pady=6)
   root.mainloop()
