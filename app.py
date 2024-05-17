@@ -1,10 +1,15 @@
 
 from tkinter import *
 from tkinter import ttk
-
 from tkinter.messagebox import showerror, showwarning, showinfo
 import pythoncom
 from win32com.client import Dispatch, gencache
+import math
+from circle_info import circle_check, circle_info
+from kompas_data import kompas_data
+from make_thread import profile_settings, make_thread
+from spiral_on_circle import spiral_on_circle, spiral_settings
+from make_bevel import bevel_settings, make_bevel
 
 
 #  Подключим константы API Компас
@@ -24,7 +29,7 @@ else:
   showerror(title="Ошибка", message="Документ не активен")
 
 
-def spiral():
+def spiral(spiral_height, spiral_step):
   #создадим эскиз
   iPart7 = iKompasDocument3D.TopPart
   #iModelContainer = KAPI7.IModelContainer(iPart7)
@@ -36,8 +41,8 @@ def spiral():
   iSpiral.SetBasePoint(0.0, 0.0) #Опорная точка для построения спирали
   iSpiral.BuildingType = 1 #1 - Построение по шагу и высоте
   iSpiral.BuildingDirection = False #Выбор направления
-  iSpiral.Height = 30.0 #Высота спирали
-  iSpiral.Step = 5.0 #Шаг навивки
+  iSpiral.Height = spiral_height #Высота спирали
+  iSpiral.Step = spiral_step #Шаг навивки
   iSpiral.TurnDirection = True #Направление навивки
   #iSpiral.BasePlane = const_3d.o3d_planeXOZ #Установка базовой плоскости спирали
   iSpiral.Update()
@@ -46,6 +51,7 @@ def spiral():
 if __name__ == '__main__':
   # Создание поля
   root = Tk()
+
   root.title('Библиотека 3D резьб')
   root.iconbitmap(default="favicon.ico")
   root.geometry("350x300")
