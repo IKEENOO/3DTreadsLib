@@ -11,7 +11,7 @@ from make_thread import profile_settings, make_thread
 from spiral_on_circle import spiral_on_circle, spiral_settings
 from make_bevel import bevel_settings, make_bevel
 
-
+"""
 #  Подключим константы API Компас
 const = gencache.EnsureModule("{75C9F5D0-B5B8-4526-8681-9903C567D2ED}", 0, 1, 0).constants
 const_3d = gencache.EnsureModule("{2CAF168C-7961-4B90-9DA2-701419BEEFE3}", 0, 1, 0).constants
@@ -27,7 +27,7 @@ if iApplication.ActiveDocument:
   iDocument3D = iKompasObject.ActiveDocument3D()
 else:
   showerror(title="Ошибка", message="Документ не активен")
-
+"""
 
 def spiral(spiral_height, spiral_step):
   #создадим эскиз
