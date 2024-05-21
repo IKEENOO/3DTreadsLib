@@ -8,7 +8,7 @@ class spiral_settings: #Информация о настройках постр�
         self.spiral_height = spiral_height #Высота спирали (не имеет смысла при построении по длине объекта)
         self.spiral_step = spiral_step #длина шага спирали
 
-def spiral_on_circle(kd, c_info, settings): #Построение спирали на 3Д-круге
+def spiral_on_circle(kd, c_info, settings, iMacro=None): #Построение спирали на 3Д-круге
     # kd - переменная с константами Kompas3D
 
     #Построение спирали
@@ -35,5 +35,12 @@ def spiral_on_circle(kd, c_info, settings): #Построение спирали
     iSpiral_5.step = settings.spiral_step #Шаг навивки
     iSpiral_5.turnDir = settings.direction #Направление навивки
 
+    if not iMacro is None:
+        #iDefinition = iMacro.GetDefinition()
+        #iDefinition.StaffVisible = True
+        #iMacroCollection = iDefinition.FeatureCollection()
+        iSpiral_7.Hidden = True
+        #iMacroCollection.Add(iSpiral_7)
+        #iMacro.Update()
     iSpiral_7.Update()
     return iSpiral_7

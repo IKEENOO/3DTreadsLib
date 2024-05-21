@@ -8,7 +8,7 @@ class bevel_settings:
         self.length = length #Длина грани фаски
         self.angle = angle #Угол, под которым выполняется операция фаски
 
-def make_bevel(kd, c_info, b_settings): #Создание профиля и резьбы
+def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание профиля и резьбы
     # kd - переменная с константами Kompas3D
     iCurve = c_info.sel_param_5.GetCurve3D()
     iPlacement = iCurve.GetCurveParam().GetPlacement()
@@ -33,3 +33,16 @@ def make_bevel(kd, c_info, b_settings): #Создание профиля и ре
     c_info.iPlane_5 = iFace
     c_info.sel_param_5 = iFace.GetDefinition().EdgeCollection().First()
     c_info.sel_param_7 = kd.iKompasObject.TransferInterface(c_info.sel_param_5,2,0)
+
+    iPart7 = kd.iKompasDocument3D.TopPart
+    iPart = kd.iDocument3D.GetPart(kd.const_3d.pTop_Part)
+
+    if not iMacro is None:
+        #iDefinition = iMacro.GetDefinition()
+        #iDefinition.StaffVisible = True
+        #iMacroCollection = iDefinition.FeatureCollection()
+        #iMacroCollection.Add(obj.GetFeature())
+        #iMacro.Update()
+        pass
+
+

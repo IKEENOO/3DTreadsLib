@@ -14,7 +14,7 @@ class profile_settings:
         """
         self.sizes = sizes #Линейные размеры элементов профиля
 
-def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профиля и резьбы
+def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создание профиля и резьбы
     # kd - переменная с константами Kompas3D
     iSpiral_5 = kd.iKompasObject.TransferInterface(iSpiral_7,1,0)
 
@@ -51,6 +51,13 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D1_7 = kd.iKompasObject.TransferInterface(iPoint3D1, 2, 0)
     iPoint3D1.SetAssociationObject(iPoint3D1_7)
     #iPoint3D1.Name = "heeelp_point1" #На случай, если нам нужно будет удалять объект по названию
+    if not iMacro is None:
+        #iDefinition = iMacro.GetDefinition()
+        #iDefinition.StaffVisible = True
+        #iMacroCollection = iDefinition.FeatureCollection()
+        iPoint3D1.Hidden = True
+        #iMacroCollection.Add(iPoint3D1)
+        #iMacro.Update()
     iPoint3D1.Update()
 
     #Создание второй точки
@@ -63,6 +70,10 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D2_7 = kd.iKompasObject.TransferInterface(iPoint3D2, 2, 0)
     iPoint3D2.SetAssociationObject(iPoint3D2_7)
     #iPoint3D2.Name = "heeelp_point2"
+    if not iMacro is None:
+        iPoint3D2.Hidden = True
+        #iMacroCollection.Add(iPoint3D2)
+        #iMacro.Update()
     iPoint3D2.Update()
 
     #Создание третьей точки
@@ -75,8 +86,12 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iPoint3D3_7 = kd.iKompasObject.TransferInterface(iPoint3D3, 2, 0)
     iPoint3D3.SetAssociationObject(iPoint3D3_7)
     #iPoint3D3.Name = "heeelp_point3"
-    iPoint3D3.Update()
+    if not iMacro is None:
+        iPoint3D3.Hidden = True
+        #iMacroCollection.Add(iPoint3D3)
+        #iMacro.Update()
 
+    iPoint3D3.Update()
     #Используя эти 3 точки можем построить плоскост, в которой будем рисовать профиль
     plane_profile = iPart.NewEntity(kd.const_3d.o3d_plane3Points)
     iDefinition = plane_profile.GetDefinition()
@@ -95,6 +110,10 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     #plane_profile.name = "heeelp_plane"
     iColorParam = plane_profile.ColorParam()
     iColorParam.color = 16776960
+    if not iMacro is None:
+        plane_profile.hidden = True
+        #iMacroCollection.Add(iDefinition)
+        #iMacro.Update()
     plane_profile.Create()
 
     #Создаём на плоскости эских и пытаемся на нём
@@ -132,6 +151,10 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
         #Поэтому эскиз надо закрыть в любом случае
         iDefinition.EndEdit()
         iDefinition.angle = 180
+        if not iMacro is None:
+            iSketch_7.Hidden = True
+            #iMacroCollection.Add(iSketch_7)
+            #iMacro.Update()
         iSketch_7.Update()
 
 
@@ -154,4 +177,10 @@ def make_thread(kd, c_info, iSpiral_7, p_settings): #Создание профи
     iColorParam.shininess = 0.8
     iColorParam.specularity = 0.8
     iColorParam.transparency = 1
+    #extrusion_thread.Create()
+
+    if not iMacro is None:
+        #iMacroCollection.Add(extrusion_thread)
+        #iMacro.Update()
+        pass
     extrusion_thread.Create()
