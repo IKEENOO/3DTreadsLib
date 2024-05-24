@@ -2,6 +2,7 @@
 #|44
 
 import pythoncom
+import math
 
 class bevel_settings:
     def __init__(self, length, angle):
@@ -21,7 +22,8 @@ def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание проф�
     obj = iPart.NewEntity(kd.const_3d.o3d_chamfer)
     iDefinition = obj.GetDefinition()
     iDefinition.tangent = True
-    iDefinition.SetChamferParam(True, b_settings.length, b_settings.angle)
+    iDefinition.SetChamferParam(True, b_settings.length, b_settings.length*math.tan(b_settings.angle/360*2*math.pi))
+
     iArray = iDefinition.array()
     iArray.Add(c_info.sel_param_5)
     obj.Create()
