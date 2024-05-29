@@ -77,7 +77,7 @@ def spiral_on_circle(kd, c_info, settings, iMacro=None): #Построение �
     #Точка начала спирали
     iPoint1 = iCurve3D.GetPoint(iCurve3D.GetParamMin(), cx, cy, cz)
     #Точка, находящаяся на противоположном конце диаметра спирали
-    iPoint4 = iCurve3D.GetPoint((iCurve3D.GetParamMax()-iCurve3D.GetParamMin())/(iSpiral_5.step+1)/2, cx, cy, cz)
+    iPoint4 = iCurve3D.GetPoint((iCurve3D.GetParamMax()-iCurve3D.GetParamMin())/(iSpiral_5.height/iSpiral_5.step)/2, cx, cy, cz)
 
     try:
         #Получение координат точки iPoint1 в координатах эскиза, чтобы нарисовать в ней профиль

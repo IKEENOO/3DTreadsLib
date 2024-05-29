@@ -96,10 +96,11 @@ if circle_selected != None:
     my_bevel_settings=bevel_settings(5, 45)
     make_bevel(kd, circle_selected, my_bevel_settings, iMacro=iMacroObject)
 
-    my_spiral_settings = spiral_settings(False, False, 30.0, 5.0)
+    my_spiral_settings = spiral_settings(False, False, 30.0, 10.0)
     my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings, iMacro=iMacroObject)
 
-    my_profile_settings=profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4
+    #my_profile_settings=profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4
+    my_profile_settings=profile_settings(3, []) #ГОСТ 9150-202
     make_thread(kd, circle_selected, my_spiral, my_profile_settings, iMacro=iMacroObject)
 
     #iMacroObject.Create()

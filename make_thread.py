@@ -2,6 +2,7 @@
 #|44
 
 import pythoncom
+import math
 
 class profile_settings:
     def __init__(self, shape, sizes):
@@ -10,7 +11,8 @@ class profile_settings:
         Форма профиля:
             0 - круг. Размеры: [радиус]
             1 - треугольник. Размеры: [основание, высота]
-            2 - треугольник. Размеры: [основание, верхняя сторона, нижняя сторона] (не реализовано)
+            2 - ГОСТ 9150-202: Размеры вычисляются сами на основании шага спирали
+            3 - ГОСТ 9150-202 скругл: Размеры вычисляются сами на основании шага спирали
         """
         self.sizes = sizes #Линейные размеры элементов профиля
 
@@ -133,8 +135,6 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
 
     profile = None
 
-
-
     try:
         #Получение координат точки iPoint1 в координатах эскиза, чтобы нарисовать в ней профиль
         bx=by=0
@@ -147,26 +147,26 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
         scalar_prod_ox = vector_inside[0]*vector_OX[0] + vector_inside[1]*vector_OX[1]
         scalar_prod_oy = vector_inside[0]*vector_OY[0] + vector_inside[1]*vector_OY[1]
 
-        if p_settings.shape == 0:
+        #Компенсация различных вариантов систем координат из-за
+        #повооротов Canvas в пространстве
+        dir1 = 1 #Нужно для корректного направления вершины профиля
+        if scalar_prod_ox*scalar_prod_oy <= 0:
+            ox = 0
+            oy = 1
+            if scalar_prod_ox < 0 and scalar_prod_oy > 0:
+                dir1 = -1
+        else: #Компенсация эффекта "Елочки"
+            ox = 1
+            oy = 0
+            if scalar_prod_ox > 0 and scalar_prod_oy > 0:
+                dir1 = -1
+        dir2 = -1 #Нужно для корректного смещения профиля чуть выше спирали
+        if scalar_prod_ox >= 0: dir2 = 1
+
+        #Создание профиля
+        if p_settings.shape == 0: #Круглый профиль
             profile = iDocument2D.ksCircle(rez[1], -rez[2], p_settings.sizes[0], 1)
-        elif p_settings.shape == 1:
-            dir1 = 1 #Нужно для корректного направления вершины профиля
-
-            if scalar_prod_ox*scalar_prod_oy <= 0:
-                ox = 0
-                oy = 1
-                if scalar_prod_ox < 0 and scalar_prod_oy > 0:
-                    dir1 = -1
-
-            else: #Компенсация эффекта "Елочки"
-                ox = 1
-                oy = 0
-                if scalar_prod_ox > 0 and scalar_prod_oy > 0:
-                    dir1 = -1
-
-            dir2 = -1 #Нужно для корректного смещения профиля чуть выше спирали
-            if scalar_prod_ox >= 0: dir2 = 1
-
+        elif p_settings.shape == 1: #Треугольный профиль: основание, высота
             width_offset = [0, p_settings.sizes[0]/2*dir2] #Ширина основания треугольника
             depth_offset = [p_settings.sizes[1]*dir1, 0]  #Высота основания треугольника
 
@@ -174,8 +174,49 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
             profile = iDocument2D.ksLineSeg(rez[1], -rez[2], rez[1], -rez[2], 1)
             profile = iDocument2D.ksLineSeg(rez[1] + width_offset[ox]*2, -rez[2] + width_offset[oy]*2, rez[1] - depth_offset[ox]  + width_offset[ox], -rez[2] - depth_offset[oy]  + width_offset[oy], 1)
             profile = iDocument2D.ksLineSeg(rez[1], -rez[2], rez[1] - depth_offset[ox]  + width_offset[ox], -rez[2] - depth_offset[oy]  + width_offset[oy], 1)
+        elif p_settings.shape == 2: #Треугольный профиль: ГОСТ 9150-202
+            P = iSpiral_5.step
+            H = P * 0.866025404 #Эта константа была в ГОСТ
+            angle = 60 * math.pi/180 #Угол профиля - 60
 
+            A = [0, 0]
+            B = [0, (7/8*P)*dir2]
+            C = [-5/8*H*dir1, (7/8*P - 5/8*H*math.tan(math.pi/2 - angle))*dir2]
+            D = [-5/8*H*dir1, (5/8*H*math.tan(math.pi/2 - angle))*dir2]
 
+            profile = iDocument2D.ksLineSeg(rez[1] + A[ox], -rez[2] + A[oy], rez[1] + B[ox], -rez[2] + B[oy], 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + B[ox], -rez[2] + B[oy], rez[1] + C[ox], -rez[2] + C[oy], 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + C[ox], -rez[2] + C[oy], rez[1] + D[ox], -rez[2] + D[oy], 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + A[ox], -rez[2] + A[oy], rez[1] + D[ox], -rez[2] + D[oy], 1)
+
+        elif p_settings.shape == 3: #Круглый профиль: ГОСТ 9150-202
+            P = iSpiral_5.step#*0.995
+            H = P * 0.960491 #Эта константа была в ГОСТ
+            R = 0.137329 * P # Эта константа была в ГОСТ
+            alpha = 55 * math.pi/180 #Угол профиля - 55
+
+            beta = math.pi - alpha
+            m = R * math.tan(beta/2)
+            nx = H/6
+            mx = -nx + H
+            my = P/2
+
+            A = [0, 0]
+            R1 = [-R*dir1, 0]
+            C = [-(-nx + m*math.cos(alpha/2))*dir1, (m*math.sin(alpha/2))*dir2]
+            D = [-(mx - m*math.cos(alpha/2))*dir1, (my - m*math.sin(alpha/2))*dir2]
+            R2 = [-(mx-nx-R)*dir1, (my)*dir2]
+            E = [-(mx - m*math.cos(alpha/2))*dir1, (my + m*math.sin(alpha/2))*dir2]
+            F = [C[0], (P-m*math.sin(alpha/2))*dir2]
+            G = [0, (P)*dir2]
+            R3 = [-R*dir1, G[1]]
+
+            profile = iDocument2D.ksArcByPoint(rez[1] + R1[ox], -rez[2] + R1[oy], R, rez[1] + A[ox], -rez[2] + A[oy], rez[1] + C[ox], -rez[2] + C[oy], 1, 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + C[ox], -rez[2] + C[oy], rez[1] + D[ox], -rez[2] + D[oy], 1)
+            profile = iDocument2D.ksArcByPoint(rez[1] + R2[ox], -rez[2] + R2[oy], R, rez[1] + D[ox], -rez[2] + D[oy], rez[1] + E[ox], -rez[2] + E[oy], -1, 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + E[ox], -rez[2] + E[oy], rez[1] + F[ox], -rez[2] + F[oy], 1)
+            profile = iDocument2D.ksArcByPoint(rez[1] + R3[ox], -rez[2] + R3[oy], R, rez[1] + F[ox], -rez[2] + F[oy], rez[1] + G[ox], -rez[2] + G[oy], 1, 1)
+            profile = iDocument2D.ksLineSeg(rez[1] + G[ox], -rez[2] + G[oy], rez[1] + A[ox], -rez[2] + A[oy], 1)
         else:
             raise ValueError("Ошибка в типе профиля!")
     except:
@@ -197,6 +238,10 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
     iDefinition.cut = True
     iDefinition.cut = 1
     iDefinition.SetSketch(iSketch_profile)
+
+    if p_settings.shape == 3:
+        iDefinition.sketchShiftType = 2 #Перемещать резец ортогонально спираль
+
     iArray = iDefinition.PathPartArray()
     iArray.Add(iCurve3D)
     iThinParam = iDefinition.ThinParam()
