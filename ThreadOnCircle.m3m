@@ -91,12 +91,11 @@ if circle_selected != None:
 
     iMacroObject=True #В будущем ссылка на интерфейс макрообъекта
     #Будет работать пока значение не равно None
-    #iMacroObject = iPart.NewEntity(const_3d.o3d_MacroObject)
 
     my_bevel_settings=bevel_settings(5, 45)
+    my_spiral_settings = spiral_settings(True, False, 30.0, 10.0)
     make_bevel(kd, circle_selected, my_bevel_settings, iMacro=iMacroObject)
 
-    my_spiral_settings = spiral_settings(False, False, 30.0, 10.0)
     my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings, iMacro=iMacroObject)
 
     #my_profile_settings=profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4

@@ -163,6 +163,8 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
         dir2 = -1 #Нужно для корректного смещения профиля чуть выше спирали
         if scalar_prod_ox >= 0: dir2 = 1
 
+        if c_info.is_inside:
+            dir1 *= -1
         #Создание профиля
         if p_settings.shape == 0: #Круглый профиль
             profile = iDocument2D.ksCircle(rez[1], -rez[2], p_settings.sizes[0], 1)
@@ -190,7 +192,13 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
             profile = iDocument2D.ksLineSeg(rez[1] + A[ox], -rez[2] + A[oy], rez[1] + D[ox], -rez[2] + D[oy], 1)
 
         elif p_settings.shape == 3: #Круглый профиль: ГОСТ 9150-202
-            P = iSpiral_5.step#*0.995
+            P = iSpiral_5.step
+
+            dir_rad = 1
+            if c_info.is_inside:
+                P *= 0.95
+                dir_rad *= -1
+
             H = P * 0.960491 #Эта константа была в ГОСТ
             R = 0.137329 * P # Эта константа была в ГОСТ
             alpha = 55 * math.pi/180 #Угол профиля - 55
@@ -211,11 +219,11 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
             G = [0, (P)*dir2]
             R3 = [-R*dir1, G[1]]
 
-            profile = iDocument2D.ksArcByPoint(rez[1] + R1[ox], -rez[2] + R1[oy], R, rez[1] + A[ox], -rez[2] + A[oy], rez[1] + C[ox], -rez[2] + C[oy], 1, 1)
+            profile = iDocument2D.ksArcByPoint(rez[1] + R1[ox], -rez[2] + R1[oy], R, rez[1] + A[ox], -rez[2] + A[oy], rez[1] + C[ox], -rez[2] + C[oy], dir_rad, 1)
             profile = iDocument2D.ksLineSeg(rez[1] + C[ox], -rez[2] + C[oy], rez[1] + D[ox], -rez[2] + D[oy], 1)
-            profile = iDocument2D.ksArcByPoint(rez[1] + R2[ox], -rez[2] + R2[oy], R, rez[1] + D[ox], -rez[2] + D[oy], rez[1] + E[ox], -rez[2] + E[oy], -1, 1)
+            profile = iDocument2D.ksArcByPoint(rez[1] + R2[ox], -rez[2] + R2[oy], R, rez[1] + D[ox], -rez[2] + D[oy], rez[1] + E[ox], -rez[2] + E[oy], -dir_rad, 1)
             profile = iDocument2D.ksLineSeg(rez[1] + E[ox], -rez[2] + E[oy], rez[1] + F[ox], -rez[2] + F[oy], 1)
-            profile = iDocument2D.ksArcByPoint(rez[1] + R3[ox], -rez[2] + R3[oy], R, rez[1] + F[ox], -rez[2] + F[oy], rez[1] + G[ox], -rez[2] + G[oy], 1, 1)
+            profile = iDocument2D.ksArcByPoint(rez[1] + R3[ox], -rez[2] + R3[oy], R, rez[1] + F[ox], -rez[2] + F[oy], rez[1] + G[ox], -rez[2] + G[oy], dir_rad, 1)
             profile = iDocument2D.ksLineSeg(rez[1] + G[ox], -rez[2] + G[oy], rez[1] + A[ox], -rez[2] + A[oy], 1)
         else:
             raise ValueError("Ошибка в типе профиля!")
@@ -239,7 +247,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None): #Создани
     iDefinition.cut = 1
     iDefinition.SetSketch(iSketch_profile)
 
-    if p_settings.shape == 3:
+    if p_settings.shape == 3 and not c_info.is_inside:
         iDefinition.sketchShiftType = 2 #Перемещать резец ортогонально спираль
 
     iArray = iDefinition.PathPartArray()

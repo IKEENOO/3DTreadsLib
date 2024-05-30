@@ -29,15 +29,30 @@ def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание проф�
     obj.Create()
 
     #Наша фигура изменилась, поэтому для дальнейшего построения спирали нужно найти новую грань
-    iCollection = iPart.EntityCollection(kd.const_3d.o3d_face)
-    iCollection.SelectByPoint(iPointFace[1], iPointFace[2], iPointFace[3])
-    iFace = iCollection.Last()
-    c_info.iPlane_5 = iFace
-    c_info.sel_param_5 = iFace.GetDefinition().EdgeCollection().First()
-    c_info.sel_param_7 = kd.iKompasObject.TransferInterface(c_info.sel_param_5,2,0)
+    if c_info.is_inside:
+        distance = 100000000
+        MyCollection = c_info.iPlaneNear_5.EdgeCollection()
+        for i in range(MyCollection.GetCount()):
+             edge = MyCollection.GetByIndex(i)
+             if edge.IsCircle():
+                 iCurve = edge.GetCurve3D()
+                 iPlacement = iCurve.GetCurveParam().GetPlacement()
+                 iPointEdge = iPlacement.GetOrigin(cx, cy, cz)
 
-    iPart7 = kd.iKompasDocument3D.TopPart
-    iPart = kd.iDocument3D.GetPart(kd.const_3d.pTop_Part)
+                 distance_new = pow((iPointEdge[0] - iPointFace[0]),2) + pow((iPointEdge[1] - iPointFace[1]),2) + pow((iPointEdge[2] - iPointFace[2]),2)
+                 if distance_new < distance:
+                    c_info.sel_param_5 = edge
+        c_info.sel_param_7 = kd.iKompasObject.TransferInterface(c_info.sel_param_5,2,0)
+    else:
+        iCollection = iPart.EntityCollection(kd.const_3d.o3d_face)
+        iCollection.SelectByPoint(iPointFace[1], iPointFace[2], iPointFace[3])
+        iFace = iCollection.Last()
+        c_info.iPlane_5 = iFace
+        c_info.sel_param_5 = iFace.GetDefinition().EdgeCollection().First()
+        c_info.sel_param_7 = kd.iKompasObject.TransferInterface(c_info.sel_param_5,2,0)
+
+    #iPart7 = kd.iKompasDocument3D.TopPart
+    #iPart = kd.iDocument3D.GetPart(kd.const_3d.pTop_Part)
 
     if not iMacro is None:
         #iDefinition = iMacro.GetDefinition()
