@@ -37,7 +37,7 @@ def create_frame_end_condition():
 
 
 def create_frame_thread_setting():
-    frame_thread_setting = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10, 45, 10])
+    frame_thread_setting = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10, 33, 10])
 
     right_thread = "Правая резьба"
     left_thread = "Левая резьба"
@@ -55,4 +55,29 @@ def create_frame_thread_setting():
                                               variable=thread_direction)
     radiobutton_thread_left.pack(anchor=NW, padx=5, pady=5)
 
-    frame_thread_setting.grid(sticky=NW, row=1, column=0, padx=5, pady=5)
+    frame_thread_setting.grid(sticky=NW, row=2, column=0, padx=5, pady=5)
+
+
+def create_frame_thread_type():    
+    frame_thread_type = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10])
+
+    label_thread_type = ttk.Label(frame_thread_type, text="Тип резьбы")
+    label_thread_type.pack(anchor=NW, padx=5, pady=5)
+
+    array_thread_type_images = ["1.png", "2.png", "3.png"]
+    array_thread_type_names = ["Метрическая", "Трубная", "Демо"]
+
+    selected_text = StringVar(value=array_thread_type_names[0])
+
+    combobox_thread_type = ttk.Combobox(frame_thread_type, values=array_thread_type_names)
+    combobox_thread_type.current(0)
+    combobox_thread_type.pack(anchor=NW, padx=5, pady=5)
+
+    frame_thread_type.grid(sticky=NW, row=0, column=1, padx=5, pady=5)
+
+
+def create_frame_bevel_setting():
+    frame_bevel_setting = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10])
+    label_thread_type = ttk.Label(frame_bevel_setting, text="Тип резьбы")
+    label_thread_type.pack(anchor=NW, padx=5, pady=5)
+    frame_bevel_setting.grid(sticky=NW, row=0, column=1, padx=5, pady=5)

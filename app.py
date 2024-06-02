@@ -31,12 +31,8 @@ else:
 
 
 def spiral(spiral_height, spiral_step):
-    # создадим эскиз
     iPart7 = iKompasDocument3D.TopPart
-    # iModelContainer = KAPI7.IModelContainer(iPart7)
-    # Создаём спираль
     iAuxiliaryGeomContainer = KAPI7.IAuxiliaryGeomContainer(iPart7)
-    # print(iModelObjects)
     iSpirals = iAuxiliaryGeomContainer.Spirals3D
     iSpiral = iSpirals.Add(const_3d.o3d_cylindricSpiral)
     iSpiral.SetBasePoint(0.0, 0.0)  # Опорная точка для построения спирали
@@ -45,7 +41,6 @@ def spiral(spiral_height, spiral_step):
     iSpiral.Height = spiral_height  # Высота спирали
     iSpiral.Step = spiral_step  # Шаг навивки
     iSpiral.TurnDirection = True  # Направление навивки
-    # iSpiral.BasePlane = const_3d.o3d_planeXOZ # Установка базовой плоскости спирали
     iSpiral.Update()
 
 
@@ -57,35 +52,9 @@ if __name__ == '__main__':
     root.geometry("500x400")
     
     create_frame_end_condition()
-
-    frame_thread_setting = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10, 45, 10])
-
-    right_thread = "Правая резьба"
-    left_thread = "Левая резьба"
-
-    thread_direction = StringVar(value=right_thread)
-
-    label_thread_direction = ttk.Label(frame_thread_setting, text="Направление резьбы")
-    label_thread_direction.pack(anchor=NW, padx=5, pady=5)
-
-    radiobutton_thread_right = ttk.Radiobutton(frame_thread_setting, text=right_thread, value=right_thread,
-                                               variable=thread_direction)
-    radiobutton_thread_right.pack(anchor=NW, padx=5, pady=5)
-
-    radiobutton_thread_left = ttk.Radiobutton(frame_thread_setting, text=left_thread, value=left_thread,
-                                              variable=thread_direction)
-    radiobutton_thread_left.pack(anchor=NW, padx=5, pady=5)
-
-    frame_thread_setting.grid(sticky=NW, row=1, column=0, padx=5, pady=5)
-
-    frame_thread_type = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10])
-
-    # Создание Entry
-    entry = ttk.Entry(frame_thread_type, width=23)
-    entry.pack(anchor=NW, padx=5, pady=5)
-    entry.insert(0, "10.0 мм")
-
-    frame_thread_type.grid(sticky=NW, row=0, column=1, padx=5, pady=5)
+    create_frame_thread_setting()
+    create_frame_thread_type()
+    create_frame_bevel_setting()
 
 
     def click_button():
