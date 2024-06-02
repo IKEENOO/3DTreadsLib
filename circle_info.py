@@ -2,7 +2,7 @@
 #|44
 
 class circle_info: #Информация о грани, на которой будет строиться спираль
-    def __init__(self, sel_param_5, sel_param_7, iPlane_5, iPlaneNear_5):
+    def __init__(self, sel_param_5, sel_param_7, iPlane_5, iPlaneNear_5, is_inside):
         self.sel_param_5 = sel_param_5 #Представление выделенного объекта в API5
         self.sel_param_7 = sel_param_7 #Представление выделенного объекта в API7
         self.iPlane_5 = iPlane_5 #Грань, соответствующая выделенному ребру
@@ -14,6 +14,8 @@ class circle_info: #Информация о грани, на которой бу
             iCurve = self.sel_param_5.GetCurve3D()
             iCircle = iCurve.GetCurveParam()
             self.radius = iCircle.radius
+
+        self.is_inside = is_inside
 
         #Получение высоты цилиндрической грани, если таковая имеется
         self.cylinder_height = None
@@ -33,9 +35,7 @@ def circle_check(kd, circle_candidate): #Подходит для для пост
         iPlaneNear_5 = None
 
         if param_5.IsCircle(): #Если ребро имеет форму круга
-            #print("Это круг!")
             if not(param_7.IsSketchEdge): #Если это НЕ ребро эскиза
-                #print("Это реальный круг, а не эскиз!")
                 """
                 Волшебный код...
                 В общем чтобы получить грань (а вместе с ней и нужное направление
@@ -57,6 +57,12 @@ def circle_check(kd, circle_candidate): #Подходит для для пост
                             is_correct_object = True
                             break
                 if not(is_correct_object):
+                    for i in directions:
+                        iPlane_5 = param_5.GetAdjacentFace(directions[i])
+                        for k in range(iPlane_5.ConnectedFaceCollection().GetCount()):
+                            iPlaneNear_5 = iPlane_5.ConnectedFaceCollection().GetByIndex(k)
+                            if(iPlaneNear_5.IsCylinder()):
+                                return circle_info(param_5, param_7, iPlane_5, iPlaneNear_5, True)
                     print("Я уже не знаю, что пошло не так...")
                     return None
             else:
@@ -69,4 +75,4 @@ def circle_check(kd, circle_candidate): #Подходит для для пост
         print("Тебе нужно выделить РЕБРО формы 'Окружность'!")
         return None
 
-    return circle_info(param_5, param_7, iPlane_5, iPlaneNear_5)
+    return circle_info(param_5, param_7, iPlane_5, iPlaneNear_5, False)
