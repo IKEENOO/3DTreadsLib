@@ -1,0 +1,1 @@
+position_setting_pack = { "anchor": "nw", "padx": 5, "pady": 5 }
