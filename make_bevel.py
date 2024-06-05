@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
-#|44
-
 import pythoncom
 import math
 
 class bevel_settings:
     def __init__(self, length, angle):
-        self.length = length #Длина грани фаски
-        self.angle = angle #Угол, под которым выполняется операция фаски
+        self.length = length # Длина фаски
+        self.angle = angle # Угол фаски
 
-def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание профиля и резьбы
-    # kd - переменная с константами Kompas3D
+def make_bevel(kd, c_info, b_settings, iMacro=None):
     iCurve = c_info.sel_param_5.GetCurve3D()
     iPlacement = iCurve.GetCurveParam().GetPlacement()
     cx=cy=cz=0
@@ -28,7 +24,7 @@ def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание проф�
     iArray.Add(c_info.sel_param_5)
     obj.Create()
 
-    #Наша фигура изменилась, поэтому для дальнейшего построения спирали нужно найти новую грань
+    # Объект изменился, для дальнейшего построения спирали нужно найти новую грань
     if c_info.is_inside:
         distance = 100000000
         MyCollection = c_info.iPlaneNear_5.EdgeCollection()
@@ -51,15 +47,5 @@ def make_bevel(kd, c_info, b_settings, iMacro=None): #Создание проф�
         c_info.sel_param_5 = iFace.GetDefinition().EdgeCollection().First()
         c_info.sel_param_7 = kd.iKompasObject.TransferInterface(c_info.sel_param_5,2,0)
 
-    #iPart7 = kd.iKompasDocument3D.TopPart
-    #iPart = kd.iDocument3D.GetPart(kd.const_3d.pTop_Part)
-
     if not iMacro is None:
-        #iDefinition = iMacro.GetDefinition()
-        #iDefinition.StaffVisible = True
-        #iMacroCollection = iDefinition.FeatureCollection()
-        #iMacroCollection.Add(obj.GetFeature())
-        #iMacro.Update()
         pass
-
-
