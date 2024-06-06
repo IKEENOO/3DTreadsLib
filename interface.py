@@ -39,17 +39,17 @@ def create_frame_end_condition():
 def create_frame_thread_setting():
     frame_thread_setting = ttk.Frame(borderwidth=1, relief=SOLID, padding=[10, 10, 33, 10])
 
-    thread_direction = StringVar(value=name_right_thread)
+    var_thread_direction = BooleanVar().set(1)
 
     label_thread_direction = ttk.Label(frame_thread_setting, text=name_label_thread_direction)
     label_thread_direction.pack(**utils_position_setting_pack)
 
-    radiobutton_thread_right = ttk.Radiobutton(frame_thread_setting, text=name_right_thread, value=name_right_thread,
-                                               variable=thread_direction)
+    radiobutton_thread_right = ttk.Radiobutton(frame_thread_setting, text=name_right_thread, value=1,
+                                               variable=var_thread_direction)
     radiobutton_thread_right.pack(**utils_position_setting_pack)
 
-    radiobutton_thread_left = ttk.Radiobutton(frame_thread_setting, text=name_left_thread, value=name_left_thread,
-                                              variable=thread_direction)
+    radiobutton_thread_left = ttk.Radiobutton(frame_thread_setting, text=name_left_thread, value=0,
+                                              variable=var_thread_direction)
     radiobutton_thread_left.pack(**utils_position_setting_pack)
 
     frame_thread_setting.grid(row=2, column=0, **utils_position_setting_grid)
