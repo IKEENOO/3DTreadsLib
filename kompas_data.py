@@ -21,3 +21,4 @@ class kompas_data:
         self.iKompasDocument = self.iApplication.ActiveDocument
         self.iKompasDocument3D = self.KAPI7.IKompasDocument3D(self.iKompasDocument)
         self.iDocument3D = self.iKompasObject.ActiveDocument3D()
+        
