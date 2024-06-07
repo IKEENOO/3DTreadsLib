@@ -46,9 +46,9 @@ if __name__ == '__main__':
         else:
             entry_end_condition["state"] = "disabled"
 
-    frame_thread_setting = ttk.LabelFrame(borderwidth=1, relief=SOLID, padding=[10, 10], text="Параметры резьбы")
+    frame_thread_setting = ttk.LabelFrame(**utils_labelframe_params, text=name_frame_thread_setting)
 
-    label_end_condition = ttk.Label(frame_thread_setting, text="Граничные условия")
+    label_end_condition = ttk.Label(frame_thread_setting, text=name_label_end_condition)
     label_end_condition.pack(**utils_position_setting_pack)
 
     combobox_end_condition = ttk.Combobox(frame_thread_setting, values=array_end_conditions)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     entry_end_condition.pack(**utils_position_setting_pack)
     entry_end_condition.insert(0, "10.0 мм")
 
-    label_thread_pitch = ttk.Label(frame_thread_setting, text="Шаг резьбы")
+    label_thread_pitch = ttk.Label(frame_thread_setting, text=name_label_thread_pitch)
     label_thread_pitch.pack(**utils_position_setting_pack)
 
     entry_thread_pitch = ttk.Entry(frame_thread_setting, width=23)
@@ -83,9 +83,9 @@ if __name__ == '__main__':
 
     frame_thread_setting.grid(row=0, column=0, **utils_position_setting_grid)
 
-    frame_thread_type = ttk.LabelFrame(borderwidth=1, relief=SOLID, padding=[10, 10], text="Параметры профиля")
+    frame_thread_type = ttk.LabelFrame(**utils_labelframe_params, text=name_frame_thread_type)
 
-    label_thread_type = ttk.Label(frame_thread_type, text="Тип резьбы")
+    label_thread_type = ttk.Label(frame_thread_type, text=name_label_thread_type)
     label_thread_type.pack(**utils_position_setting_pack)
 
     selected_text = StringVar(value=array_thread_type_names[0])
@@ -120,10 +120,10 @@ if __name__ == '__main__':
         iSelectionMng = iDocument3D.GetSelectionMng()
 
         try:
-            if(iSelectionMng.GetCount() == 1): # Если выделен только один объект
+            if(iSelectionMng.GetCount() == 1):
                 return circle_check(kd,iSelectionMng.GetObjectByIndex(0))
         except:
-            showerror(title="Ошибка", message="Выдели ребро")
+            showerror(title=name_warning_common_title, message=name_warning_edge_type_error)
 
         return None
 
@@ -132,16 +132,16 @@ if __name__ == '__main__':
         spiral_height = entry_end_condition.get()
         spiral_step = entry_thread_pitch.get()
         kd = kompas_data()
+        iMacro = True
         circle_selected = get_circle_selected(kd)
-        my_bevel_settings = bevel_settings(2, math.pi/4)
+        my_bevel_settings = bevel_settings(2, 45)
         make_bevel(kd, circle_selected, my_bevel_settings)
 
-        my_spiral_settings = spiral_settings(combobox_end_condition.get() == "На всю длину", var_thread_direction.get(), spiral_height, spiral_step)
-        my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings)
+        my_spiral_settings = spiral_settings(combobox_end_condition.get() == array_end_conditions[1], var_thread_direction.get(), spiral_height, spiral_step)
+        my_spiral = spiral_on_circle(kd, circle_selected, my_spiral_settings, iMacro=iMacro)
 
-        #my_profile_settings=profile_settings(0, [2]) #Круглый профиль радиуса 2
-        my_profile_settings = profile_settings(1, [2, 4]) #Треугольный профиль с основанием 2 и высотой 4
-        make_thread(kd, circle_selected, my_spiral, my_profile_settings)
+        my_profile_settings = profile_settings(2, [])
+        make_thread(kd, circle_selected, my_spiral, my_profile_settings, iMacro=iMacro)
 
 
     btn_create_thread = ttk.Button(frame_thread_setting, text="Построить", command=click_button)
