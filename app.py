@@ -51,7 +51,7 @@ if __name__ == '__main__':
     label_end_condition = ttk.Label(frame_thread_setting, text=name_label_end_condition)
     label_end_condition.pack(**utils_position_setting_pack)
 
-    combobox_end_condition = ttk.Combobox(frame_thread_setting, values=array_end_conditions)
+    combobox_end_condition = ttk.Combobox(frame_thread_setting, values=array_end_conditions, state="readonly")
     combobox_end_condition.bind("<<ComboboxSelected>>", cbox_selected)
     combobox_end_condition.current(0)
     combobox_end_condition.pack(**utils_position_setting_pack)
@@ -63,9 +63,9 @@ if __name__ == '__main__':
     label_thread_pitch = ttk.Label(frame_thread_setting, text=name_label_thread_pitch)
     label_thread_pitch.pack(**utils_position_setting_pack)
 
-    entry_thread_pitch = ttk.Entry(frame_thread_setting, width=23)
-    entry_thread_pitch.pack(**utils_position_setting_pack)
-    entry_thread_pitch.insert(0, "2")
+    combobox_thread_pitch = ttk.Combobox(frame_thread_setting, values=array_thread_pitches, state="readonly")
+    combobox_thread_pitch.current(0)
+    combobox_thread_pitch.pack(**utils_position_setting_pack)
 
     var_thread_direction = BooleanVar()
     var_thread_direction.set(1)

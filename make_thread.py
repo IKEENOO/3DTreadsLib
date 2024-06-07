@@ -209,7 +209,7 @@ def make_thread(kd, c_info, iSpiral_7, p_settings, iMacro=None):
             profile = iDocument2D.ksArcByPoint(rez[1] + R3[ox], -rez[2] + R3[oy], R, rez[1] + F[ox], -rez[2] + F[oy], rez[1] + G[ox], -rez[2] + G[oy], dir_rad, 1)
             profile = iDocument2D.ksLineSeg(rez[1] + G[ox], -rez[2] + G[oy], rez[1] + A[ox], -rez[2] + A[oy], 1)
         else:
-            raise ValueError(name_profile_type_error)
+            raise ValueError(name_warning_profile_type_error)
     except:
         showwarning(title=name_warning_common_title, text=name_warning_common_error)
     finally: # Если при построении будет ошибка, и не закрыть эскиз, то редактор зависнет

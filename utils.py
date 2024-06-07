@@ -3,5 +3,6 @@ utils_position_setting_grid = { "sticky": "nw", "padx": 5, "pady": 5 }
 utils_labelframe_params = { "borderwidth": 1, "relief": "solid", "padding": [10, 10] }
 
 array_end_conditions = ["Задать длину", "На всю длину"]
+array_thread_pitches = ["1", "1.5", "2", "3", "4", "5"]
 array_thread_type_images = ["img/metric_profile.png", "img/pipe_profile.png", "img/triangle_profile.png"]
 array_thread_type_names = ["Метрическая", "Трубная", "Демо-Треугольный"]
